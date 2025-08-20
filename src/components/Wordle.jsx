@@ -5,7 +5,8 @@ import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
 
-const SOLUTION = potentialWords[Math.floor(Math.random() * potentialWords.length)];
+const SOLUTION =
+  potentialWords[Math.floor(Math.random() * potentialWords.length)];
 
 const Wordle = () => {
   const [guesses, setGuesses] = useState([
@@ -71,31 +72,30 @@ const Wordle = () => {
         setNotification("WELL DONE");
         setCorrectLetters([...SOLUTION]);
       } else {
-        let correctLetters = [];
+        let newCorrectLetters = [];
+        let newPresentLetters = [];
+        let newAbsentLetters = [];
 
         [...currentGuess].forEach((letter, index) => {
-          if (SOLUTION[index] === letter) correctLetters.push(letter);
+          if (SOLUTION[index] === letter) {
+            // Letter is in correct position
+            newCorrectLetters.push(letter);
+          } else if (SOLUTION.includes(letter)) {
+            // Letter is in solution but wrong position
+            newPresentLetters.push(letter);
+          } else {
+            // Letter is not in solution
+            newAbsentLetters.push(letter);
+          }
         });
 
-        setCorrectLetters([...new Set(correctLetters)]);
-
+        setCorrectLetters([
+          ...new Set([...correctLetters, ...newCorrectLetters]),
+        ]);
         setPresentLetters([
-          ...new Set([
-            ...presentLetters,
-            ...[...currentGuess].filter((letter) => {
-              SOLUTION.includes(letter);
-            }),
-          ]),
+          ...new Set([...presentLetters, ...newPresentLetters]),
         ]);
-
-        setAbsentLetters([
-          ...new Set([
-            ...absentLetters,
-            ...[...currentGuess].filter((letter) => {
-              !SOLUTION.includes(letter);
-            }),
-          ]),
-        ]);
+        setAbsentLetters([...new Set([...absentLetters, ...newAbsentLetters])]);
 
         setFailedGuesses([...failedGuesses, currentGuess]);
         setActiveRowIndex((index) => index + 1);
@@ -118,7 +118,7 @@ const Wordle = () => {
         " "
       );
       setGuesses(newGuesses);
-      setActiveLetterIndex((index) => index - 1 );
+      setActiveLetterIndex((index) => index - 1);
     }
   };
 
@@ -159,7 +159,10 @@ const Wordle = () => {
           <Row
             key={index}
             word={guess}
-            applyRotation={activeRowIndex> index||(solutionFound&&activeRowIndex === index)}
+            applyRotation={
+              activeRowIndex > index ||
+              (solutionFound && activeRowIndex === index)
+            }
             solution={SOLUTION}
             bounceOnError={
               notification !== "WELL DONE" &&
