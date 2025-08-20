@@ -19,6 +19,7 @@ const Wordle = () => {
   ]);
 
   const [solutionFound, setSolutionFound] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [activeLetterIndex, setActiveLetterIndex] = useState(0);
   const [notification, setNotification] = useState("");
   const [activeRowIndex, setActiveRowIndex] = useState(0);
@@ -100,6 +101,12 @@ const Wordle = () => {
         setFailedGuesses([...failedGuesses, currentGuess]);
         setActiveRowIndex((index) => index + 1);
         setActiveLetterIndex(0);
+
+        // Check if this was the last attempt
+        if (activeRowIndex === 5) {
+          setGameOver(true);
+          setNotification(`The answer was: ${SOLUTION.toUpperCase()}`);
+        }
       }
     } else {
       setNotification("You need to type 5 letters");
@@ -123,7 +130,7 @@ const Wordle = () => {
   };
 
   const handleKeyDown = (event) => {
-    if (solutionFound) return;
+    if (solutionFound || gameOver) return;
     if (LETTERS.includes(event.key)) {
       typeLetter(event.key);
     }
