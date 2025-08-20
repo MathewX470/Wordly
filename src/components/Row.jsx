@@ -11,7 +11,19 @@ const Row = ({
   return (
     <div className={`row ${bounceOnError && "row--bounce"}`}>
       {word.split("").map((letter, index) => {
-        const bgClass = solution.includes(letter) ? "present" : "absent";
+        let bgClass = "";
+
+        if (markAsSolution) {
+          bgClass = "correct";
+        } else if (markPresentAndAbsentLetters) {
+          if (solution[index] === letter) {
+            bgClass = "correct";
+          } else if (solution.includes(letter)) {
+            bgClass = "present";
+          } else {
+            bgClass = "absent";
+          }
+        }
 
         return (
           <div
@@ -20,7 +32,7 @@ const Row = ({
               markAsSolution && `correct rotate--${index + 1}00`
             } ${
               markPresentAndAbsentLetters && `${bgClass} rotate--${index + 1}00`
-            } ${letter!==" "&& "letter--active"} ${solution[index]=== letter && "correct"}`}
+            } ${letter !== " " && "letter--active"}`}
           >
             {letter}
             <div className="back">{letter}</div>

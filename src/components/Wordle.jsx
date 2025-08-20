@@ -24,7 +24,7 @@ const Wordle = () => {
   const [failedGuesses, setFailedGuesses] = useState([]);
   const [correctLetters, setCorrectLetters] = useState([]);
   const [presentLetters, setPresentLetters] = useState([]);
-  const[absentLetters, setAbsentLetters] = useState([]);
+  const [absentLetters, setAbsentLetters] = useState([]);
 
   const wordleRef = useRef();
 
@@ -101,14 +101,25 @@ const Wordle = () => {
         setActiveRowIndex((index) => index + 1);
         setActiveLetterIndex(0);
       }
-    }
-    else{
+    } else {
       setNotification("You need to type 5 letters");
     }
   };
 
   const hitBackspace = () => {
+    setNotification("");
 
+    if (guesses[activeRowIndex][0] !== " ") {
+      const newGuesses = [...guesses];
+
+      newGuesses[activeRowIndex] = replaceCharacter(
+        newGuesses[activeRowIndex],
+        activeLetterIndex - 1,
+        " "
+      );
+      setGuesses(newGuesses);
+      setActiveLetterIndex((index) => index - 1 );
+    }
   };
 
   const handleKeyDown = (event) => {
@@ -138,13 +149,26 @@ const Wordle = () => {
       onKeyDown={handleKeyDown}
     >
       <div className="title">Wordle</div>
-      <div className={`notifications ${solutionFound && "notification--green"}`}>{notification}</div>
+      <div
+        className={`notifications ${solutionFound && "notification--green"}`}
+      >
+        {notification}
+      </div>
       {guesses.map((guess, index) => {
-        return <Row key={index} word={guess} markAsSSolution={solutionFound && activeRowIndex===index} 
-        markPresentAndAbsentLetters={activeRowIndex>index} 
-        solution={SOLUTION}
-        bounceOnError={notification !== "WELL DONE" && notification !== "" && activeRowIndex===index}
-        />;
+        return (
+          <Row
+            key={index}
+            word={guess}
+            markAsSolution={solutionFound && activeRowIndex === index}
+            markPresentAndAbsentLetters={activeRowIndex > index}
+            solution={SOLUTION}
+            bounceOnError={
+              notification !== "WELL DONE" &&
+              notification !== "" &&
+              activeRowIndex === index
+            }
+          />
+        );
       })}
     </div>
   );
