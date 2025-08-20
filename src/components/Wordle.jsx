@@ -21,6 +21,10 @@ const Wordle = () => {
   const [activeLetterIndex, setActiveLetterIndex] = useState(0);
   const [notification, setNotification] = useState("");
   const [activeRowIndex, setActiveRowIndex] = useState(0);
+  const [failedGuesses, setFailedGuesses] = useState([]);
+  const [correctLetters, setCorrectLetters] = useState([]);
+  const [presentLetters, setPresentLetters] = useState([]);
+  const[absentLetters, setAbsentLetters] = useState([]);
 
   const wordleRef = useRef();
 
@@ -53,11 +57,58 @@ const Wordle = () => {
   };
 
   const hitEnter = () => {
-    //TODO
+    if (activeLetterIndex === 5) {
+      const currentGuess = guesses[activeRowIndex];
+
+      if (!potentialWords.includes(currentGuess)) {
+        setNotification("Not a valid word");
+        return;
+      } else if (failedGuesses.includes(currentGuess)) {
+        setNotification("You already tried this word");
+        return;
+      } else if (currentGuess === SOLUTION) {
+        setSolutionFound(true);
+        setNotification("WELL DONE");
+        setCorrectLetters([...SOLUTION]);
+      } else {
+        let correctLetters = [];
+
+        [...currentGuess].forEach((letter, index) => {
+          if (SOLUTION[index] === letter) correctLetters.push(letter);
+        });
+
+        setCorrectLetters([...new Set(correctLetters)]);
+
+        setPresentLetters([
+          ...new Set([
+            ...presentLetters,
+            ...[...currentGuess].filter((letter) => {
+              SOLUTION.includes(letter);
+            }),
+          ]),
+        ]);
+
+        setAbsentLetters([
+          ...new Set([
+            ...absentLetters,
+            ...[...currentGuess].filter((letter) => {
+              !SOLUTION.includes(letter);
+            }),
+          ]),
+        ]);
+
+        setFailedGuesses([...failedGuesses, currentGuess]);
+        setActiveRowIndex((index) => index + 1);
+        setActiveLetterIndex(0);
+      }
+    }
+    else{
+      setNotification("You need to type 5 letters");
+    }
   };
 
   const hitBackspace = () => {
-    //TODO
+
   };
 
   const handleKeyDown = (event) => {
@@ -87,9 +138,13 @@ const Wordle = () => {
       onKeyDown={handleKeyDown}
     >
       <div className="title">Wordle</div>
-      <div className="notifications"></div>
+      <div className={`notifications ${solutionFound && "notification--green"}`}>{notification}</div>
       {guesses.map((guess, index) => {
-        return <Row key={index} word={guess} />;
+        return <Row key={index} word={guess} markAsSSolution={solutionFound && activeRowIndex===index} 
+        markPresentAndAbsentLetters={activeRowIndex>index} 
+        solution={SOLUTION}
+        bounceOnError={notification !== "WELL DONE" && notification !== "" && activeRowIndex===index}
+        />;
       })}
     </div>
   );
