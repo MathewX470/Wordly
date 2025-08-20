@@ -5,7 +5,7 @@ import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
 
-const SOLUTION = "react";
+const SOLUTION = potentialWords[Math.floor(Math.random() * potentialWords.length)];
 
 const Wordle = () => {
   const [guesses, setGuesses] = useState([
@@ -159,8 +159,7 @@ const Wordle = () => {
           <Row
             key={index}
             word={guess}
-            markAsSolution={solutionFound && activeRowIndex === index}
-            markPresentAndAbsentLetters={activeRowIndex > index}
+            applyRotation={activeRowIndex> index||(solutionFound&&activeRowIndex === index)}
             solution={SOLUTION}
             bounceOnError={
               notification !== "WELL DONE" &&
@@ -170,6 +169,15 @@ const Wordle = () => {
           />
         );
       })}
+      <Keyboard
+        typeLetter={typeLetter}
+        hitEnter={hitEnter}
+        hitBackspace={hitBackspace}
+        activeLetterIndex={activeLetterIndex}
+        correctLetters={correctLetters}
+        presentLetters={presentLetters}
+        absentLetters={absentLetters}
+      />
     </div>
   );
 };

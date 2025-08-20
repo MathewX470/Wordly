@@ -1,38 +1,22 @@
-import React from "react";
 import "../styles/Row.scss";
 
-const Row = ({
-  word,
-  markAsSolution,
-  markPresentAndAbsentLetters,
-  solution,
-  bounceOnError,
-}) => {
+export default function Row({ word, applyRotation, solution, bounceOnError }) {
   return (
     <div className={`row ${bounceOnError && "row--bounce"}`}>
       {word.split("").map((letter, index) => {
-        let bgClass = "";
-
-        if (markAsSolution) {
-          bgClass = "correct";
-        } else if (markPresentAndAbsentLetters) {
-          if (solution[index] === letter) {
-            bgClass = "correct";
-          } else if (solution.includes(letter)) {
-            bgClass = "present";
-          } else {
-            bgClass = "absent";
-          }
-        }
+        const bgClass =
+          solution[index] === letter
+            ? "correct"
+            : solution.includes(letter)
+            ? "present"
+            : "absent";
 
         return (
           <div
-            key={index}
-            className={`letter ${
-              markAsSolution && `correct rotate--${index + 1}00`
-            } ${
-              markPresentAndAbsentLetters && `${bgClass} rotate--${index + 1}00`
+            className={`letter ${bgClass} ${
+              applyRotation && `rotate--${index + 1}00`
             } ${letter !== " " && "letter--active"}`}
+            key={index}
           >
             {letter}
             <div className="back">{letter}</div>
@@ -41,6 +25,4 @@ const Row = ({
       })}
     </div>
   );
-};
-
-export default Row;
+}
