@@ -11,7 +11,7 @@
 
 .title {
   text-transform: uppercase;
-  font-size:xx-large;
+  font-size: xx-large;
 }
 
 .notification {
@@ -24,5 +24,22 @@
 
   &--green {
     color: #538d4e;
+  }
+}
+
+.next-game-btn {
+  margin-top: 20px;
+  padding: 12px 24px;
+  background-color: #538d4e;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #4a7c44;
   }
 }

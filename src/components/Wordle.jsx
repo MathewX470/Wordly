@@ -5,18 +5,24 @@ import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
 
-const SOLUTION =
-  potentialWords[Math.floor(Math.random() * potentialWords.length)];
-
 const Wordle = () => {
-  const [guesses, setGuesses] = useState([
-    "     ",
-    "     ",
-    "     ",
-    "     ",
-    "     ",
-    "     ",
-  ]);
+  // Check for saved game first
+  const getSavedGame = () => {
+    const saved = localStorage.getItem("wordleGame");
+    return saved ? JSON.parse(saved) : null;
+  };
+
+  const savedGame = getSavedGame();
+
+  const [solution] = useState(
+    () =>
+      savedGame?.solution ||
+      potentialWords[Math.floor(Math.random() * potentialWords.length)]
+  );
+
+  const [guesses, setGuesses] = useState(
+    savedGame?.guesses || ["     ", "     ", "     ", "     ", "     ", "     "]
+  );
 
   const [solutionFound, setSolutionFound] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -68,20 +74,20 @@ const Wordle = () => {
       } else if (failedGuesses.includes(currentGuess)) {
         setNotification("You already tried this word");
         return;
-      } else if (currentGuess === SOLUTION) {
+      } else if (currentGuess === solution) {
         setSolutionFound(true);
         setNotification("WELL DONE");
-        setCorrectLetters([...SOLUTION]);
+        setCorrectLetters([...solution]);
       } else {
         let newCorrectLetters = [];
         let newPresentLetters = [];
         let newAbsentLetters = [];
 
         [...currentGuess].forEach((letter, index) => {
-          if (SOLUTION[index] === letter) {
+          if (solution[index] === letter) {
             // Letter is in correct position
             newCorrectLetters.push(letter);
-          } else if (SOLUTION.includes(letter)) {
+          } else if (solution.includes(letter)) {
             // Letter is in solution but wrong position
             newPresentLetters.push(letter);
           } else {
@@ -105,7 +111,7 @@ const Wordle = () => {
         // Check if this was the last attempt
         if (activeRowIndex === 5) {
           setGameOver(true);
-          setNotification(`The answer was: ${SOLUTION.toUpperCase()}`);
+          setNotification(`The answer was: ${solution.toUpperCase()}`);
         }
       }
     } else {
@@ -145,6 +151,46 @@ const Wordle = () => {
     }
   };
 
+  useEffect(() => {
+    if (!solutionFound && !gameOver) {
+      const gameData = {
+        solution,
+        guesses,
+        solutionFound,
+        gameOver,
+        activeLetterIndex,
+        notification,
+        activeRowIndex,
+        failedGuesses,
+        correctLetters,
+        presentLetters,
+        absentLetters,
+      };
+      localStorage.setItem("wordleGame", JSON.stringify(gameData));
+    }
+  }, [
+    solution,
+    guesses,
+    solutionFound,
+    gameOver,
+    activeLetterIndex,
+    notification,
+    activeRowIndex,
+    failedGuesses,
+    correctLetters,
+    presentLetters,
+    absentLetters,
+  ]);
+
+  const startNewGame = () => {
+    localStorage.removeItem("wordleGame");
+    window.location.reload();
+  };
+  const resetGame = () => {
+    localStorage.removeItem("wordleGame");
+    window.location.reload();
+  };
+
   return (
     <div
       className="wordle"
@@ -170,7 +216,7 @@ const Wordle = () => {
               activeRowIndex > index ||
               (solutionFound && activeRowIndex === index)
             }
-            solution={SOLUTION}
+            solution={solution}
             bounceOnError={
               notification !== "WELL DONE" &&
               notification !== "" &&
@@ -188,6 +234,15 @@ const Wordle = () => {
         presentLetters={presentLetters}
         absentLetters={absentLetters}
       />
+      {solutionFound || gameOver ? (
+        <button className="next-game-btn" onClick={startNewGame}>
+          Next Game
+        </button>
+      ) : (
+        <button className="next-game-btn" onClick={resetGame}>
+          Reset
+        </button>
+      )}
     </div>
   );
 };
