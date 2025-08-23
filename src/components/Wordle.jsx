@@ -5,6 +5,33 @@ import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
 
+// Simple hash function to obfuscate the solution
+const hashString = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return hash.toString(36);
+};
+
+// Simple unhash function (reverse the process)
+const unhashString = (hashedStr) => {
+  // This is a simplified approach - in a real app you'd use proper encryption
+  const hash = parseInt(hashedStr, 36);
+  let result = "";
+  let tempHash = hash;
+
+  // Try to find matching words from our word list
+  for (const word of potentialWords) {
+    if (hashString(word) === hashedStr) {
+      return word;
+    }
+  }
+  return null;
+};
+
 // Stats Modal Component
 const StatsModal = ({
   isOpen,
@@ -98,7 +125,16 @@ const Wordle = () => {
   // Check for saved game first
   const getSavedGame = () => {
     const saved = localStorage.getItem("wordleGame");
-    return saved ? JSON.parse(saved) : null;
+    if (saved) {
+      const savedGame = JSON.parse(saved);
+      // If we have a hashed solution, unhash it
+      if (savedGame.hashedSolution) {
+        savedGame.solution = unhashString(savedGame.hashedSolution);
+        delete savedGame.hashedSolution; // Remove the hashed version from memory
+      }
+      return savedGame;
+    }
+    return null;
   };
 
   const savedGame = getSavedGame();
@@ -162,11 +198,11 @@ const Wordle = () => {
     wordleRef.current.focus();
   }, []);
 
-  // Save game state function - only saves completed guesses
+  // Save game state function - only saves completed guesses with hashed solution
   const saveGameState = (showModal = false) => {
     const completedGuesses = guesses.filter((guess) => !guess.includes(" "));
     const gameData = {
-      solution,
+      hashedSolution: hashString(solution), // Store hashed version instead of plain text
       completedGuesses,
       activeRowIndex: completedGuesses.length,
       solutionFound,
