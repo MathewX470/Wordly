@@ -5,7 +5,96 @@ import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
 
+// Stats Modal Component
+const StatsModal = ({
+  isOpen,
+  stats,
+  onPlayAgain,
+  onResetStats,
+  solution,
+  isWin,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="stats-modal">
+        <div className="modal-header">
+          <h2>Statistics</h2>
+          <div className="solution-display">
+            <div className="solution-label">The word was:</div>
+            <div className="solution-word">{solution.toUpperCase()}</div>
+          </div>
+        </div>{" "}
+        <div className="stats-grid">
+          <div className="stat-item">
+            <div className="stat-number">{stats.gamesPlayed}</div>
+            <div className="stat-label">Played</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-number">{stats.winPercentage}</div>
+            <div className="stat-label">Win %</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-number">{stats.currentStreak}</div>
+            <div className="stat-label">Current Streak</div>
+          </div>
+          <div className="stat-item">
+            <div className="stat-number">{stats.maxStreak}</div>
+            <div className="stat-label">Max Streak</div>
+          </div>
+        </div>
+        <div className="guess-distribution">
+          <h3>Guess Distribution</h3>
+          {[1, 2, 3, 4, 5, 6].map((num) => (
+            <div key={num} className="distribution-row">
+              <div className="guess-number">{num}</div>
+              <div className="distribution-bar">
+                <div
+                  className="bar-fill"
+                  style={{
+                    width: `${
+                      stats.gamesWon > 0
+                        ? (stats.distribution[num] / stats.gamesWon) * 100
+                        : 0
+                    }%`,
+                  }}
+                >
+                  {stats.distribution[num]}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="modal-buttons">
+          <button className="reset-stats-btn" onClick={onResetStats}>
+            Reset Stats
+          </button>
+          <button className="play-again-btn" onClick={onPlayAgain}>
+            Play Again
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Wordle = () => {
+  // Helper function to initialize guesses from saved completed guesses
+  const initializeGuesses = () => {
+    const emptyGuesses = ["     ", "     ", "     ", "     ", "     ", "     "];
+    const saved = localStorage.getItem("wordleGame");
+    if (saved) {
+      const savedGame = JSON.parse(saved);
+      if (savedGame.completedGuesses) {
+        for (let i = 0; i < savedGame.completedGuesses.length && i < 6; i++) {
+          emptyGuesses[i] = savedGame.completedGuesses[i];
+        }
+      }
+    }
+    return emptyGuesses;
+  };
+
   // Check for saved game first
   const getSavedGame = () => {
     const saved = localStorage.getItem("wordleGame");
@@ -14,31 +103,108 @@ const Wordle = () => {
 
   const savedGame = getSavedGame();
 
+  // Initialize stats
+  const getInitialStats = () => {
+    const savedStats = localStorage.getItem("wordleStats");
+    return savedStats
+      ? JSON.parse(savedStats)
+      : {
+          gamesPlayed: 0,
+          gamesWon: 0,
+          winPercentage: 0,
+          currentStreak: 0,
+          maxStreak: 0,
+          distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+        };
+  };
+
   const [solution] = useState(
     () =>
       savedGame?.solution ||
       potentialWords[Math.floor(Math.random() * potentialWords.length)]
   );
 
-  const [guesses, setGuesses] = useState(
-    savedGame?.guesses || ["     ", "     ", "     ", "     ", "     ", "     "]
+  const [guesses, setGuesses] = useState(initializeGuesses());
+
+  const [solutionFound, setSolutionFound] = useState(
+    savedGame?.solutionFound || false
+  );
+  const [gameOver, setGameOver] = useState(savedGame?.gameOver || false);
+  const [activeLetterIndex, setActiveLetterIndex] = useState(0);
+  const [notification, setNotification] = useState(
+    savedGame?.notification || ""
+  );
+  const [activeRowIndex, setActiveRowIndex] = useState(
+    savedGame?.activeRowIndex || 0
+  );
+  const [failedGuesses, setFailedGuesses] = useState(
+    savedGame?.failedGuesses || []
+  );
+  const [correctLetters, setCorrectLetters] = useState(
+    savedGame?.correctLetters || []
+  );
+  const [presentLetters, setPresentLetters] = useState(
+    savedGame?.presentLetters || []
+  );
+  const [absentLetters, setAbsentLetters] = useState(
+    savedGame?.absentLetters || []
   );
 
-  const [solutionFound, setSolutionFound] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [activeLetterIndex, setActiveLetterIndex] = useState(0);
-  const [notification, setNotification] = useState("");
-  const [activeRowIndex, setActiveRowIndex] = useState(0);
-  const [failedGuesses, setFailedGuesses] = useState([]);
-  const [correctLetters, setCorrectLetters] = useState([]);
-  const [presentLetters, setPresentLetters] = useState([]);
-  const [absentLetters, setAbsentLetters] = useState([]);
+  // Stats and Modal states
+  const [gameStats, setGameStats] = useState(getInitialStats());
+  const [showStatsModal, setShowStatsModal] = useState(
+    savedGame?.showStatsModal || false
+  );
 
   const wordleRef = useRef();
 
   useEffect(() => {
     wordleRef.current.focus();
   }, []);
+
+  // Save game state function - only saves completed guesses
+  const saveGameState = (showModal = false) => {
+    const completedGuesses = guesses.filter((guess) => !guess.includes(" "));
+    const gameData = {
+      solution,
+      completedGuesses,
+      activeRowIndex: completedGuesses.length,
+      solutionFound,
+      gameOver,
+      correctLetters,
+      presentLetters,
+      absentLetters,
+      failedGuesses,
+      notification,
+      showStatsModal: showModal,
+    };
+    localStorage.setItem("wordleGame", JSON.stringify(gameData));
+  };
+
+  // Update stats when game is won
+  const updateStatsOnWin = (currentStats, guessNumber) => {
+    const newStats = { ...currentStats };
+    newStats.gamesPlayed += 1;
+    newStats.gamesWon += 1;
+    newStats.currentStreak += 1;
+    newStats.maxStreak = Math.max(newStats.maxStreak, newStats.currentStreak);
+    newStats.winPercentage = Math.round(
+      (newStats.gamesWon / newStats.gamesPlayed) * 100
+    );
+    newStats.distribution[guessNumber] += 1;
+    return newStats;
+  };
+
+  // Update stats when game is lost
+  const updateStatsOnLoss = (currentStats) => {
+    const newStats = { ...currentStats };
+    newStats.gamesPlayed += 1;
+    newStats.currentStreak = 0;
+    newStats.winPercentage = Math.round(
+      (newStats.gamesWon / newStats.gamesPlayed) * 100
+    );
+    return newStats;
+  };
 
   const typeLetter = (letter) => {
     if (activeLetterIndex < 5) {
@@ -76,8 +242,15 @@ const Wordle = () => {
         return;
       } else if (currentGuess === solution) {
         setSolutionFound(true);
-        setNotification("WELL DONE");
+        setNotification(""); // Clear notification
         setCorrectLetters([...solution]);
+
+        // Update stats and show modal
+        const newStats = updateStatsOnWin(gameStats, activeRowIndex + 1);
+        setGameStats(newStats);
+        localStorage.setItem("wordleStats", JSON.stringify(newStats));
+        setShowStatsModal(true);
+        saveGameState(true);
       } else {
         let newCorrectLetters = [];
         let newPresentLetters = [];
@@ -107,11 +280,19 @@ const Wordle = () => {
         setFailedGuesses([...failedGuesses, currentGuess]);
         setActiveRowIndex((index) => index + 1);
         setActiveLetterIndex(0);
+        saveGameState();
 
         // Check if this was the last attempt
         if (activeRowIndex === 5) {
           setGameOver(true);
-          setNotification(`The answer was: ${solution.toUpperCase()}`);
+          setNotification(""); // Clear notification
+
+          // Update stats for loss and show modal
+          const newStats = updateStatsOnLoss(gameStats);
+          setGameStats(newStats);
+          localStorage.setItem("wordleStats", JSON.stringify(newStats));
+          setShowStatsModal(true);
+          saveGameState(true);
         }
       }
     } else {
@@ -122,9 +303,8 @@ const Wordle = () => {
   const hitBackspace = () => {
     setNotification("");
 
-    if (guesses[activeRowIndex][0] !== " ") {
+    if (activeLetterIndex > 0) {
       const newGuesses = [...guesses];
-
       newGuesses[activeRowIndex] = replaceCharacter(
         newGuesses[activeRowIndex],
         activeLetterIndex - 1,
@@ -151,44 +331,22 @@ const Wordle = () => {
     }
   };
 
-  useEffect(() => {
-    if (!solutionFound && !gameOver) {
-      const gameData = {
-        solution,
-        guesses,
-        solutionFound,
-        gameOver,
-        activeLetterIndex,
-        notification,
-        activeRowIndex,
-        failedGuesses,
-        correctLetters,
-        presentLetters,
-        absentLetters,
-      };
-      localStorage.setItem("wordleGame", JSON.stringify(gameData));
-    }
-  }, [
-    solution,
-    guesses,
-    solutionFound,
-    gameOver,
-    activeLetterIndex,
-    notification,
-    activeRowIndex,
-    failedGuesses,
-    correctLetters,
-    presentLetters,
-    absentLetters,
-  ]);
-
-  const startNewGame = () => {
+  const handlePlayAgain = () => {
     localStorage.removeItem("wordleGame");
     window.location.reload();
   };
-  const resetGame = () => {
-    localStorage.removeItem("wordleGame");
-    window.location.reload();
+
+  const handleResetStats = () => {
+    const resetStats = {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      winPercentage: 0,
+      currentStreak: 0,
+      maxStreak: 0,
+      distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+    };
+    setGameStats(resetStats);
+    localStorage.setItem("wordleStats", JSON.stringify(resetStats));
   };
 
   return (
@@ -201,12 +359,14 @@ const Wordle = () => {
       }}
       onKeyDown={handleKeyDown}
     >
-      <div className="title">Wordle</div>
-      <div
-        className={`notifications ${solutionFound && "notification--green"}`}
-      >
-        {notification}
-      </div>
+      <div className="title">Wordly</div>
+      {!showStatsModal && (
+        <div
+          className={`notifications ${solutionFound && "notification--green"}`}
+        >
+          {notification}
+        </div>
+      )}
       {guesses.map((guess, index) => {
         return (
           <Row
@@ -234,15 +394,15 @@ const Wordle = () => {
         presentLetters={presentLetters}
         absentLetters={absentLetters}
       />
-      {solutionFound || gameOver ? (
-        <button className="next-game-btn" onClick={startNewGame}>
-          Next Game
-        </button>
-      ) : (
-        <button className="next-game-btn" onClick={resetGame}>
-          Reset
-        </button>
-      )}
+
+      <StatsModal
+        isOpen={showStatsModal}
+        stats={gameStats}
+        onPlayAgain={handlePlayAgain}
+        onResetStats={handleResetStats}
+        solution={solution}
+        isWin={solutionFound}
+      />
     </div>
   );
 };

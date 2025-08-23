@@ -43,3 +43,235 @@
     background-color: #4a7c44;
   }
 }
+
+// Stats Modal Styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.stats-modal {
+  background: #121213;
+  border: 1px solid #3a3a3c;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: white;
+
+  .modal-header {
+    text-align: center;
+    margin-bottom: 20px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .solution-display {
+      margin-top: 15px;
+
+      .solution-label {
+        font-size: 0.9rem;
+        color: #d1d5db;
+        margin-bottom: 6px;
+      }
+
+      .solution-word {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #538d4e;
+        letter-spacing: 2px;
+      }
+    }
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 20px 0;
+
+    .stat-item {
+      text-align: center;
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-top: 4px;
+        color: #d1d5db;
+      }
+    }
+  }
+
+  .guess-distribution {
+    margin: 20px 0;
+
+    h3 {
+      text-align: left;
+      margin: 0 0 15px 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .distribution-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+
+      .guess-number {
+        width: 20px;
+        text-align: center;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+
+      .distribution-bar {
+        flex: 1;
+        background-color: #3a3a3c;
+        height: 20px;
+        border-radius: 3px;
+        overflow: hidden;
+        position: relative;
+
+        .bar-fill {
+          background-color: #538d4e;
+          height: 100%;
+          min-width: 7%;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          padding-right: 8px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+
+    .reset-stats-btn {
+      flex: 1;
+      padding: 14px;
+      background-color: #3a3a3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #4a4a4c;
+      }
+    }
+
+    .play-again-btn {
+      flex: 2;
+      padding: 14px;
+      background-color: #538d4e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: #4a7c44;
+      }
+    }
+  }
+}
+
+// Mobile responsive styles
+@media (max-width: 700px) {
+  .stats-modal {
+    width: 95%;
+    padding: 20px;
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+    }
+
+    .modal-header .solution-display {
+      .solution-label {
+        font-size: 0.8rem;
+      }
+
+      .solution-word {
+        font-size: 1.3rem;
+        letter-spacing: 1px;
+      }
+    }
+
+    .stats-grid {
+      gap: 8px;
+
+      .stat-item {
+        .stat-number {
+          font-size: 1.5rem;
+        }
+
+        .stat-label {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .guess-distribution {
+      .distribution-row {
+        .guess-number {
+          width: 16px;
+          font-size: 0.9rem;
+        }
+
+        .distribution-bar {
+          height: 18px;
+
+          .bar-fill {
+            font-size: 0.7rem;
+            padding-right: 6px;
+          }
+        }
+      }
+    }
+
+    .modal-buttons {
+      gap: 8px;
+
+      .reset-stats-btn {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+
+      .play-again-btn {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
+    }
+  }
+}
