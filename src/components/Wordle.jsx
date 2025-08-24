@@ -4,6 +4,7 @@ import "../styles/Wordle.scss";
 import Row from "./Row";
 import Keyboard from "./Keyboard";
 import { LETTERS, potentialWords } from "../data/LettersWords";
+import targetWords from "../data/targetWords.json";
 
 // Simple hash function to obfuscate the solution
 const hashString = (str) => {
@@ -23,7 +24,14 @@ const unhashString = (hashedStr) => {
   let result = "";
   let tempHash = hash;
 
-  // Try to find matching words from our word list
+  // Try to find matching words from target words first (solutions)
+  for (const word of targetWords) {
+    if (hashString(word) === hashedStr) {
+      return word;
+    }
+  }
+
+  // Fallback to potential words (valid guesses)
   for (const word of potentialWords) {
     if (hashString(word) === hashedStr) {
       return word;
@@ -40,6 +48,8 @@ const StatsModal = ({
   onResetStats,
   solution,
   isWin,
+  viewOnly = false,
+  onClose,
 }) => {
   if (!isOpen) return null;
 
@@ -48,10 +58,17 @@ const StatsModal = ({
       <div className="stats-modal">
         <div className="modal-header">
           <h2>Statistics</h2>
-          <div className="solution-display">
-            <div className="solution-label">The word was:</div>
-            <div className="solution-word">{solution.toUpperCase()}</div>
-          </div>
+          {!viewOnly && (
+            <div className="solution-display">
+              <div className="solution-label">The word was:</div>
+              <div className="solution-word">{solution.toUpperCase()}</div>
+            </div>
+          )}
+          {viewOnly && (
+            <button className="close-modal-btn" onClick={onClose}>
+              ×
+            </button>
+          )}
         </div>{" "}
         <div className="stats-grid">
           <div className="stat-item">
@@ -93,14 +110,16 @@ const StatsModal = ({
             </div>
           ))}
         </div>
-        <div className="modal-buttons">
-          <button className="reset-stats-btn" onClick={onResetStats}>
-            Reset Stats
-          </button>
-          <button className="play-again-btn" onClick={onPlayAgain}>
-            Play Again
-          </button>
-        </div>
+        {!viewOnly && (
+          <div className="modal-buttons">
+            <button className="reset-stats-btn" onClick={onResetStats}>
+              Reset Stats
+            </button>
+            <button className="play-again-btn" onClick={onPlayAgain}>
+              Play Again
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -157,7 +176,7 @@ const Wordle = () => {
   const [solution] = useState(
     () =>
       savedGame?.solution ||
-      potentialWords[Math.floor(Math.random() * potentialWords.length)]
+      targetWords[Math.floor(Math.random() * targetWords.length)]
   );
 
   const [guesses, setGuesses] = useState(initializeGuesses());
@@ -191,6 +210,7 @@ const Wordle = () => {
   const [showStatsModal, setShowStatsModal] = useState(
     savedGame?.showStatsModal || false
   );
+  const [showViewOnlyStats, setShowViewOnlyStats] = useState(false);
 
   const wordleRef = useRef();
 
@@ -270,7 +290,11 @@ const Wordle = () => {
     if (activeLetterIndex === 5) {
       const currentGuess = guesses[activeRowIndex];
 
-      if (!potentialWords.includes(currentGuess)) {
+      // Check if word is valid in either targetWords or potentialWords
+      if (
+        !targetWords.includes(currentGuess) &&
+        !potentialWords.includes(currentGuess)
+      ) {
         setNotification("Not a valid word");
         return;
       } else if (failedGuesses.includes(currentGuess)) {
@@ -385,6 +409,14 @@ const Wordle = () => {
     localStorage.setItem("wordleStats", JSON.stringify(resetStats));
   };
 
+  const handleViewStats = () => {
+    setShowViewOnlyStats(true);
+  };
+
+  const handleCloseViewStats = () => {
+    setShowViewOnlyStats(false);
+  };
+
   return (
     <div
       className="wordle"
@@ -395,8 +427,13 @@ const Wordle = () => {
       }}
       onKeyDown={handleKeyDown}
     >
-      <div className="title">Wordly</div>
-      {!showStatsModal && (
+      <div className="header">
+        <div className="title">Wordly Unlimited</div>
+        <button className="stats-btn" onClick={handleViewStats}>
+          📊
+        </button>
+      </div>
+      {!showStatsModal && !showViewOnlyStats && (
         <div
           className={`notifications ${solutionFound && "notification--green"}`}
         >
@@ -438,6 +475,13 @@ const Wordle = () => {
         onResetStats={handleResetStats}
         solution={solution}
         isWin={solutionFound}
+      />
+
+      <StatsModal
+        isOpen={showViewOnlyStats}
+        stats={gameStats}
+        viewOnly={true}
+        onClose={handleCloseViewStats}
       />
     </div>
   );
