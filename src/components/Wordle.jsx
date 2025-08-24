@@ -430,7 +430,7 @@ const Wordle = () => {
       <div className="header">
         <div className="title">Wordly Unlimited</div>
         <button className="stats-btn" onClick={handleViewStats}>
-          📊
+          <img src="/statusIcon.png" alt="Stats" className="stats-icon" />
         </button>
       </div>
       {!showStatsModal && !showViewOnlyStats && (

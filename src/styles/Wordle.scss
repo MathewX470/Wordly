@@ -1,8 +1,28 @@
+// Global mobile fixes
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 .wordle {
   display: flex;
   flex-direction: column;
   gap: 5px;
   align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 10px;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
@@ -15,7 +35,9 @@
   justify-content: center;
   position: relative;
   width: 100%;
-  max-width: 500px;
+  max-width: 100%;
+  padding: 0 50px;
+  box-sizing: border-box;
 }
 
 .title {
@@ -30,12 +52,11 @@
 
 .stats-btn {
   position: absolute;
-  right: 0;
+  right: -5px;
   background: none;
   border: 1px solid #3a3a3c;
   border-radius: 6px;
   color: #d1d5db;
-  font-size: 1.5rem;
   width: 40px;
   height: 40px;
   display: flex;
@@ -43,11 +64,23 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  padding: 0;
 
   &:hover {
     background-color: #3a3a3c;
     border-color: #565758;
     transform: scale(1.05);
+  }
+
+  .stats-icon {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0.8);
+    transition: filter 0.3s ease;
+  }
+
+  &:hover .stats-icon {
+    filter: brightness(1);
   }
 }
 
@@ -270,6 +303,34 @@
 
 // Mobile responsive styles
 @media (max-width: 700px) {
+  .wordle {
+    padding: 0 5px;
+  }
+
+  .header {
+    padding: 0 45px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin: 10px 0;
+    letter-spacing: 0.05em;
+  }
+
+  .stats-btn {
+    width: 44px;
+    height: 44px;
+    right: 0;
+    /* Ensure minimum touch target size */
+    min-width: 44px;
+    min-height: 44px;
+
+    .stats-icon {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
   .stats-modal {
     width: 95%;
     padding: 20px;
